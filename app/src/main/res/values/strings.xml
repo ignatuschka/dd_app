@@ -16,4 +16,9 @@
     <string name="passwordsMustBeSame">Пароли должны быть одинаковы</string>
     <string name="signin">Войти</string>
     <string name="signIn">Вход</string>
+    <string name="gender">Пол</string>
+    <string name="policyAndAgreementText1">"Нажимая на кнопку, вы соглашаетесь\n c "</string>
+    <string name="policyAndAgreementText2">политикой конфиденциальности</string>
+    <string name="policyAndAgreementText3">" и обработки персональных\nданных, а также принимаете "</string>
+    <string name="policyAndAgreementText4">пользовательское соглашение</string>
 </resources>
