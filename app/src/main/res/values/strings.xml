@@ -1,3 +1,24 @@
 <resources>
     <string name="app_name">dd_app</string>
+    <string name="welcomeScreenTitle">Пожалуй, лучший фитнес\nтрекер в ДВФУ</string>
+    <string name="welcomeScreenSubtitle">Созданный студентами</string>
+    <string name="signUp">Зарегистрироваться</string>
+    <string name="alreadyHaveAccount">Уже есть аккаунт?</string>
+    <string name="male">Мужской</string>
+    <string name="female">Женский</string>
+    <string name="other">Другое</string>
+    <string name="registration">Регистрация</string>
+    <string name="login">Логин</string>
+    <string name="fillField">Заполните поле</string>
+    <string name="nameOrNickname">Имя или никнейм</string>
+    <string name="password">Пароль</string>
+    <string name="repeatPassword">Повторите пароль</string>
+    <string name="passwordsMustBeSame">Пароли должны быть одинаковы</string>
+    <string name="signin">Войти</string>
+    <string name="signIn">Вход</string>
+    <string name="gender">Пол</string>
+    <string name="policyAndAgreementText1">"Нажимая на кнопку, вы соглашаетесь\n c "</string>
+    <string name="policyAndAgreementText2">политикой конфиденциальности</string>
+    <string name="policyAndAgreementText3">" и обработки персональных\nданных, а также принимаете "</string>
+    <string name="policyAndAgreementText4">пользовательское соглашение</string>
 </resources>
