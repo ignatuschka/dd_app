@@ -1,8 +1,14 @@
 package com.example.dd_app.presentation.viewmodel
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.dd_app.R
+import com.example.dd_app.core.util.HashUtil
+import com.example.dd_app.domain.entity.UserEntity
 import com.example.dd_app.domain.provider.ResourceProvider
+import com.example.dd_app.domain.usecase.InsertUserUsecase
+import com.example.dd_app.domain.usecase.SaveUserLoginUsecase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,27 +30,38 @@ data class RegistrationUiState(
     val selectedOption: String = "",
     val repeatPassError: Boolean = true,
     val nameError: Boolean = true,
+    val wrongUserData: Boolean = false
 )
 
 @HiltViewModel
-class RegistrationViewModel @Inject  constructor(private val resourceProvider: ResourceProvider) : ViewModel() {
+class RegistrationViewModel @Inject constructor(
+    resourceProvider: ResourceProvider,
+    private val saveUserLoginUsecase: SaveUserLoginUsecase,
+    private val insertUserUsecase: InsertUserUsecase
+) :
+    ViewModel() {
     private val _uiState = MutableStateFlow(
         RegistrationUiState(
             radioOptions = listOf(
                 resourceProvider.getString(R.string.male),
                 resourceProvider.getString(R.string.female),
                 resourceProvider.getString(R.string.other)
-            )
+            ),
+            selectedOption = resourceProvider.getString(R.string.male),
         )
     )
     val uiState: StateFlow<RegistrationUiState> = _uiState.asStateFlow()
+    private val hashUtil = HashUtil()
+
+    private val _navigateToMain = MutableLiveData<Boolean>()
+    val navigateToMain: LiveData<Boolean> get() = _navigateToMain
 
     fun onOptionSelected(option: String) {
         _uiState.update { it.copy(selectedOption = option) }
     }
 
     fun onChangeLogin(loginText: String) {
-        _uiState.update { it.copy(login = loginText, loginError = loginText.isEmpty()) }
+        _uiState.update { it.copy(login = loginText, loginError = loginText.isEmpty(), wrongUserData = false) }
     }
 
     fun onChangeName(nameText: String) {
@@ -72,7 +89,28 @@ class RegistrationViewModel @Inject  constructor(private val resourceProvider: R
         _uiState.update { it.copy(repeatPassVisible = !it.repeatPassVisible) }
     }
 
-    fun signupCallback() {
-        _uiState.update { it.copy(showErrors = true) }
+    suspend fun signupCallback() {
+        if (uiState.value.loginError || uiState.value.passError || uiState.value.repeatPassError || uiState.value.nameError) {
+            _uiState.update {
+                it.copy(showErrors = true)
+            }
+            return
+        }
+        val salt = hashUtil.generateSalt()
+        val passwordHash = hashUtil.hashValue(value = uiState.value.pass, salt = salt)
+        val user = UserEntity(
+            id = 0,
+            login = uiState.value.login,
+            username = uiState.value.name,
+            passwordHash = passwordHash,
+            salt = salt
+        )
+        val isUserInserted = insertUserUsecase(user)
+        if (isUserInserted) saveUserLoginUsecase(uiState.value.login)
+        _uiState.update {
+            it.copy(wrongUserData = !isUserInserted, showErrors = true)
+        }
+        _navigateToMain.value = isUserInserted
+
     }
 }

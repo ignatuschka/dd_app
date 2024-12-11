@@ -7,33 +7,42 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
 import com.example.dd_app.R
 import com.example.dd_app.presentation.ui.components.DdAppBar
 import com.example.dd_app.presentation.ui.components.DdButton
 import com.example.dd_app.presentation.ui.components.DdTextField
 import com.example.dd_app.presentation.ui.components.PolicyAndAgreementText
 import com.example.dd_app.presentation.ui.components.RadioButtonGroup
+import com.example.dd_app.presentation.ui.theme.Colors
 import com.example.dd_app.presentation.viewmodel.RegistrationViewModel
+import kotlinx.coroutines.launch
 
 @Composable
-fun RegistrationScreen(popBack: () -> Unit, viewModel: RegistrationViewModel = hiltViewModel()) {
+fun RegistrationScreen(
+    popBack: () -> Unit,
+    viewModel: RegistrationViewModel = hiltViewModel(),
+    navToMain: () -> Unit
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val navigateToHome by viewModel.navigateToMain.observeAsState()
+
+
     Scaffold(
-        containerColor = Color(255, 255, 255),
+        containerColor = Colors.White,
         topBar = {
             DdAppBar(popBack = popBack, title = stringResource(R.string.registration))
         },
@@ -53,8 +62,12 @@ fun RegistrationScreen(popBack: () -> Unit, viewModel: RegistrationViewModel = h
                     value = uiState.login,
                     onValueChange = { viewModel.onChangeLogin(it) },
                     label = stringResource(R.string.login),
-                    isError = uiState.loginError && uiState.showErrors,
-                    supportingText = stringResource(R.string.fillField),
+                    isError = uiState.loginError && uiState.showErrors || uiState.wrongUserData,
+                    supportingText = if (uiState.passError && uiState.showErrors) {
+                        stringResource(R.string.fillField)
+                    } else if (uiState.wrongUserData) {
+                        stringResource(R.string.userExistErrorText)
+                    } else null,
                 )
                 DdTextField(
                     value = uiState.name,
@@ -68,10 +81,15 @@ fun RegistrationScreen(popBack: () -> Unit, viewModel: RegistrationViewModel = h
                     visibleText = uiState.passVisible,
                     onValueChange = { viewModel.onChangePass(it) },
                     label = stringResource(R.string.password),
-                    trailingIcon = if (uiState.passVisible)
-                        Icons.Filled.VisibilityOff
-                    else Icons.Filled.Visibility,
-                    onClick = { viewModel.onPassVisibleChange() },
+                    trailingIcon = {
+                        IconButton(onClick = { viewModel.onPassVisibleChange() }) {
+                            Icon(
+                                imageVector = if (uiState.passVisible)
+                                    Icons.Filled.VisibilityOff
+                                else Icons.Filled.Visibility, null
+                            )
+                        }
+                    },
                     isError = uiState.passError && uiState.showErrors,
                     supportingText = stringResource(R.string.fillField),
                 )
@@ -80,20 +98,23 @@ fun RegistrationScreen(popBack: () -> Unit, viewModel: RegistrationViewModel = h
                     visibleText = uiState.repeatPassVisible,
                     onValueChange = { viewModel.onChangeRepeatPass(it) },
                     label = stringResource(R.string.repeatPassword),
-                    trailingIcon = if (uiState.repeatPassVisible)
-                        Icons.Filled.VisibilityOff
-                    else Icons.Filled.Visibility,
-                    onClick = {viewModel.onRepeatPassVisibleChange()},
+                    trailingIcon = {
+                        IconButton(onClick = { viewModel.onRepeatPassVisibleChange() }) {
+                            Icon(
+                                imageVector = if (uiState.repeatPassVisible)
+                                    Icons.Filled.VisibilityOff
+                                else Icons.Filled.Visibility, null
+                            )
+                        }
+                    },
                     isError = uiState.repeatPassError && uiState.showErrors,
                     supportingText = stringResource(R.string.passwordsMustBeSame),
                 )
                 Text(
                     modifier = Modifier.padding(top = 24.dp),
-                    text = stringResource(R.string.gender), fontSize = 20.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    fontFamily = FontFamily.Default,
-                    lineHeight = 24.sp,
-                    color = Color(16, 16, 16),
+                    text = stringResource(R.string.gender),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Colors.Dark,
                 )
                 RadioButtonGroup(
                     selectedOption = uiState.selectedOption,
@@ -101,7 +122,14 @@ fun RegistrationScreen(popBack: () -> Unit, viewModel: RegistrationViewModel = h
                     radioOptions = uiState.radioOptions
                 )
                 DdButton(
-                    onClick = { viewModel.signupCallback() },
+                    onClick = {
+                        viewModel.viewModelScope.launch {
+                            viewModel.signupCallback()
+                            navigateToHome?.let {
+                                if (it) navToMain()
+                            }
+                        }
+                    },
                     text = stringResource(R.string.signUp),
                     modifier = Modifier
                         .fillMaxWidth()
