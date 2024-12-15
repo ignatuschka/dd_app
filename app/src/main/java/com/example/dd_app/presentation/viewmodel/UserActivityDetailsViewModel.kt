@@ -3,7 +3,7 @@ package com.example.dd_app.presentation.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.dd_app.domain.entity.MyActivityEntity
+import com.example.dd_app.domain.entity.ActivityEntity
 import com.example.dd_app.domain.usecase.GetUserActivityUsecase
 import com.example.dd_app.presentation.navigation.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class UserActivityDetailsUiState(
-    val userActivity: MyActivityEntity? = null,
+    val userActivity: ActivityEntity? = null,
     val isLoading: Boolean = false
 )
 

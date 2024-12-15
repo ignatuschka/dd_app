@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.dd_app.R
 import com.example.dd_app.core.convert.DateConvert
-import com.example.dd_app.domain.entity.MyActivityEntity
+import com.example.dd_app.domain.entity.ActivityEntity
 import com.example.dd_app.domain.provider.ResourceProvider
 import com.example.dd_app.domain.usecase.GetAllUserActivitiesUsecase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,7 +24,7 @@ data class UsersActivitiesUiState(
 )
 
 data class ActivitiesWithTitles(
-    val item: MyActivityEntity,
+    val item: ActivityEntity,
     val title: String? = null
 )
 
@@ -50,7 +50,7 @@ class UsersActivitiesViewModel @Inject constructor(
         }
     }
 
-    private fun groupActivitiesByDate(activities: List<MyActivityEntity>): List<ActivitiesWithTitles> {
+    private fun groupActivitiesByDate(activities: List<ActivityEntity>): List<ActivitiesWithTitles> {
         val now = LocalDateTime.now()
         val oneMonthsAgo = YearMonth.from(now).minusMonths(1).atDay(1).atStartOfDay()
         var date: LocalDate? = null
@@ -64,9 +64,9 @@ class UsersActivitiesViewModel @Inject constructor(
             ) result.add(
                 ActivitiesWithTitles(it, resourceProvider.getString(R.string.yesterday))
             ) else if (it.exerciseStart.month == now.month && it.exerciseStart.year == now.year && it.exerciseStart.toLocalDate() != date) result.add(
-                ActivitiesWithTitles(it, DateConvert().format(it.exerciseStart, "d MMMM"))
+                ActivitiesWithTitles(it, DateConvert.format(it.exerciseStart, "d MMMM"))
             ) else if (it.exerciseStart.isBefore(oneMonthsAgo) && (it.exerciseStart.month != date?.month || it.exerciseStart.year != date?.year)) result.add(
-                ActivitiesWithTitles(it, DateConvert().format(it.exerciseStart, "LLLL yyyy года"))
+                ActivitiesWithTitles(it, DateConvert.format(it.exerciseStart, "LLLL yyyy года"))
             ) else result.add(ActivitiesWithTitles(it))
             date = it.exerciseStart.toLocalDate()
         }

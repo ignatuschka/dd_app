@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.dd_app.core.enums.ExerciseType
 import com.example.dd_app.data.data_source.local.LocationClient
-import com.example.dd_app.domain.entity.MyActivityEntity
+import com.example.dd_app.domain.entity.ActivityEntity
 import com.example.dd_app.domain.usecase.GetUserByLoginUsecase
 import com.example.dd_app.domain.usecase.GetUserLoginUsecase
 import com.example.dd_app.domain.usecase.InsertMyActivityUsecase
@@ -89,7 +89,7 @@ class NewMyActivityViewModel @Inject constructor(
         val userLogin = getUserLoginUsecase()
         viewModelScope.launch {
             val user = if (userLogin != null) getUserByLoginUsecase(userLogin) else null
-            val myActivity = if (user != null) MyActivityEntity(
+            val myActivity = if (user != null) ActivityEntity(
                 userId = user.id,
                 distanceMeters = uiState.value.distanceMeters.toInt(),
                 exerciseStart = uiState.value.exerciseStart,

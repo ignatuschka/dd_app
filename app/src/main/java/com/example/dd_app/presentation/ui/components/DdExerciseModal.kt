@@ -34,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.dd_app.R
+import com.example.dd_app.core.convert.DistanceConvert
 import com.example.dd_app.core.enums.ExerciseType
 import com.example.dd_app.presentation.ui.theme.Colors
 
@@ -47,106 +48,23 @@ fun DdExerciseModal(
     distanceMeters: Int,
     onFinish: () -> Unit
 ) {
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp))
-                .background(Colors.White)
-                .fillMaxWidth()
-                .animateContentSize(),
-        ) {
-            if (!isExerciseStarted) Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    modifier = Modifier.padding(top = 32.dp, bottom = 24.dp),
-                    text = stringResource(R.string.letsgo),
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = Colors.Dark,
-                )
-                LazyRow {
-                    itemsIndexed(
-                        ExerciseType.entries.toTypedArray(),
-                        key = { _, item -> item.name }) { index, item ->
-                        Card(
-                            modifier = Modifier
-                                .padding(
-                                    start = if (index == 0) 16.dp else 0.dp,
-                                    end = if (index + 1 == ExerciseType.entries.size) 16.dp else 8.dp
-                                )
-                                .height(84.dp),
-                            onClick = { onExerciseTypeSelect(item) },
-                            enabled = true,
-                            shape = RoundedCornerShape(14.dp),
-                            colors = CardDefaults.cardColors(Colors.White),
-                            border = if (item == exerciseType) BorderStroke(
-                                width = 2.dp,
-                                color = Colors.Purple
-                            ) else BorderStroke(width = 1.dp, color = Colors.Gray)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    modifier = Modifier.padding(start = 16.dp, end = 10.dp),
-                                    text = item.title,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = Colors.Dark
-                                )
-                                Image(
-                                    painter = painterResource(id = R.drawable.activity_type),
-                                    contentDescription = null
-                                )
-                            }
-                        }
-                    }
-                }
-                DdButton(
-                    modifier = Modifier
-                        .padding(
-                            top = 32.dp,
-                            bottom = 32.dp + bottomPadding,
-                            start = 16.dp,
-                            end = 16.dp
-                        )
-                        .fillMaxWidth(),
-                    text = stringResource(R.string.getStarted),
-                    onClick = { onExerciseStart() }
-                )
-            } else Column(
-                modifier = Modifier.padding(
-                    top = 32.dp,
-                    start = 24.dp,
-                    end = 24.dp,
-                    bottom = 32.dp + bottomPadding
-                ),
-            ) {
-                Text(
-                    text = exerciseType.title,
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = Colors.Dark,
-                )
-                Row(
-                    modifier = Modifier
-                        .padding(top = 8.dp, bottom = 32.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = if (distanceMeters > 1000) "${distanceMeters.toDouble() / 1000} км" else "$distanceMeters м",
-                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Normal),
-                        color = Colors.Dark
-                    )
-                    TimerText()
-                }
-                IconButton(
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .size(56.dp),
-                    onClick = onFinish,
-                    colors = IconButtonDefaults.iconButtonColors(Colors.Purple)
-                ) {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(id = R.drawable.racing_flag),
-                        contentDescription = "finish",
-                        tint = Colors.White
-                    )
-                }
-            }
-        }
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp))
+            .background(Colors.White)
+            .fillMaxWidth()
+            .animateContentSize(),
+    ) {
+        if (!isExerciseStarted) ExerciseSelectionContent(
+            onExerciseTypeSelect = onExerciseTypeSelect,
+            exerciseType = exerciseType,
+            bottomPadding = bottomPadding,
+            onExerciseStart = onExerciseStart
+        ) else ExerciseInProgressContent(
+            distanceMeters = distanceMeters,
+            onFinish = onFinish,
+            bottomPadding = bottomPadding,
+            exerciseTypeTitle = exerciseType.title
+        )
+    }
 }

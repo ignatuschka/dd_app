@@ -2,7 +2,7 @@ package com.example.dd_app.data.network.model
 
 import com.example.dd_app.core.convert.DateConvert
 import com.example.dd_app.core.enums.ExerciseType
-import com.example.dd_app.domain.entity.MyActivityEntity
+import com.example.dd_app.domain.entity.ActivityEntity
 import com.google.gson.annotations.SerializedName
 
 data class UserActivityModel(
@@ -19,11 +19,11 @@ data class UserActivityModel(
     @SerializedName("user_name")
     val userName: String
 ) {
-    fun toEntity() = MyActivityEntity(
+    fun toEntity() = ActivityEntity(
         id = id,
         distanceMeters = distanceMeters,
-        exerciseStart = DateConvert().stringToDate(exerciseStart),
-        exerciseEnd = DateConvert().stringToDate(exerciseEnd),
+        exerciseStart = DateConvert.stringToDate(exerciseStart),
+        exerciseEnd = DateConvert.stringToDate(exerciseEnd),
         comment = comment,
         exerciseType = ExerciseType.valueOf(exerciseType),
         userName = userName

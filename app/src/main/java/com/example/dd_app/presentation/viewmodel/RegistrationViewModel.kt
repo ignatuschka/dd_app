@@ -51,43 +51,37 @@ class RegistrationViewModel @Inject constructor(
         )
     )
     val uiState: StateFlow<RegistrationUiState> = _uiState.asStateFlow()
-    private val hashUtil = HashUtil()
 
     private val _navigateToMain = MutableLiveData<Boolean>()
     val navigateToMain: LiveData<Boolean> get() = _navigateToMain
 
-    fun onOptionSelected(option: String) {
-        _uiState.update { it.copy(selectedOption = option) }
+    fun onOptionSelected(option: String) = _uiState.update { it.copy(selectedOption = option) }
+
+    fun onChangeLogin(loginText: String) = _uiState.update {
+        it.copy(
+            login = loginText,
+            loginError = loginText.isEmpty(),
+            wrongUserData = false
+        )
     }
 
-    fun onChangeLogin(loginText: String) {
-        _uiState.update { it.copy(login = loginText, loginError = loginText.isEmpty(), wrongUserData = false) }
-    }
-
-    fun onChangeName(nameText: String) {
+    fun onChangeName(nameText: String) =
         _uiState.update { it.copy(name = nameText, nameError = nameText.isEmpty()) }
-    }
 
-    fun onChangePass(passText: String) {
+    fun onChangePass(passText: String) =
         _uiState.update { it.copy(pass = passText, passError = passText.isEmpty()) }
+
+    fun onChangeRepeatPass(repeatPassText: String) = _uiState.update {
+        it.copy(
+            repeatPass = repeatPassText,
+            repeatPassError = repeatPassText.isEmpty() || it.pass != repeatPassText
+        )
     }
 
-    fun onChangeRepeatPass(repeatPassText: String) {
-        _uiState.update {
-            it.copy(
-                repeatPass = repeatPassText,
-                repeatPassError = repeatPassText.isEmpty() || it.pass != repeatPassText
-            )
-        }
-    }
+    fun onPassVisibleChange() = _uiState.update { it.copy(passVisible = !it.passVisible) }
 
-    fun onPassVisibleChange() {
-        _uiState.update { it.copy(passVisible = !it.passVisible) }
-    }
-
-    fun onRepeatPassVisibleChange() {
+    fun onRepeatPassVisibleChange() =
         _uiState.update { it.copy(repeatPassVisible = !it.repeatPassVisible) }
-    }
 
     suspend fun signupCallback() {
         if (uiState.value.loginError || uiState.value.passError || uiState.value.repeatPassError || uiState.value.nameError) {
@@ -96,13 +90,12 @@ class RegistrationViewModel @Inject constructor(
             }
             return
         }
-        val salt = hashUtil.generateSalt()
-        val passwordHash = hashUtil.hashValue(value = uiState.value.pass, salt = salt)
+        val salt = HashUtil.generateSalt()
         val user = UserEntity(
             id = 0,
             login = uiState.value.login,
             username = uiState.value.name,
-            passwordHash = passwordHash,
+            passwordHash = HashUtil.hashPassword(uiState.value.pass, salt),
             salt = salt
         )
         val isUserInserted = insertUserUsecase(user)
@@ -111,6 +104,5 @@ class RegistrationViewModel @Inject constructor(
             it.copy(wrongUserData = !isUserInserted, showErrors = true)
         }
         _navigateToMain.value = isUserInserted
-
     }
 }

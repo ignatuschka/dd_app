@@ -30,22 +30,27 @@ class LoginViewModel @Inject constructor(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
-    private val hashUtil = HashUtil()
 
     private val _navigateToMain = MutableLiveData<Boolean>()
     val navigateToMain: LiveData<Boolean> get() = _navigateToMain
 
-    fun onChangeLogin(loginText: String) {
-        _uiState.update { it.copy(login = loginText, loginError = loginText.isEmpty(), wrongUserData = false) }
+    fun onChangeLogin(loginText: String) = _uiState.update {
+        it.copy(
+            login = loginText,
+            loginError = loginText.isEmpty(),
+            wrongUserData = false
+        )
     }
 
-    fun onChangePass(passText: String) {
-        _uiState.update { it.copy(pass = passText, passError = passText.isEmpty(), wrongUserData = false) }
+    fun onChangePass(passText: String) = _uiState.update {
+        it.copy(
+            pass = passText,
+            passError = passText.isEmpty(),
+            wrongUserData = false
+        )
     }
 
-    fun onPassVisibleChange() {
-        _uiState.update { it.copy(passVisible = !it.passVisible) }
-    }
+    fun onPassVisibleChange() = _uiState.update { it.copy(passVisible = !it.passVisible) }
 
     suspend fun loginCallback() {
         if (uiState.value.loginError || uiState.value.passError) {
@@ -56,17 +61,12 @@ class LoginViewModel @Inject constructor(
         }
         val user = getUserByLoginUsecase(uiState.value.login)
         val passwordCorrect = user?.let {
-            hashUtil.verifyHashValue(
-                value = uiState.value.pass,
-                salt = it.salt,
-                storedHash = it.passwordHash
-            )
+            HashUtil.verifyHashPassword(uiState.value.pass, it.salt, it.passwordHash)
         } ?: false
         if (passwordCorrect) saveUserLoginUsecase(uiState.value.login)
         _uiState.update {
             it.copy(wrongUserData = !passwordCorrect, showErrors = true)
         }
         _navigateToMain.value = passwordCorrect
-
     }
 }

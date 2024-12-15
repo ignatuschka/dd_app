@@ -2,6 +2,7 @@ package com.example.dd_app.presentation.ui.screens
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
 import android.net.Uri
@@ -27,6 +28,7 @@ import com.example.dd_app.presentation.navigation.BottomNavItems
 import com.example.dd_app.presentation.navigation.MainNavHost
 import com.example.dd_app.presentation.ui.components.DdBottomBar
 import com.example.dd_app.presentation.ui.components.DdFloatingActionButton
+import com.example.dd_app.presentation.ui.components.DdSnackbarHost
 import com.example.dd_app.presentation.ui.theme.Colors
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
@@ -54,60 +56,15 @@ fun MainScreen(logout: () -> Unit, navToNewMyActivity: () -> Unit) {
         Manifest.permission.ACCESS_FINE_LOCATION
     ) { result ->
         if (result) {
-            val client = LocationServices.getSettingsClient(context)
-            val locationRequest =
-                LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 10000).build()
-            val settingsRequest = LocationSettingsRequest.Builder()
-                .addLocationRequest(locationRequest)
-                .build()
-            val task: Task<LocationSettingsResponse> =
-                client.checkLocationSettings(settingsRequest)
-            task.addOnSuccessListener {
-                navToNewMyActivity()
-            }
-            task.addOnFailureListener { exception ->
-                if (exception is ApiException) {
-                    if (exception.statusCode == LocationSettingsStatusCodes.RESOLUTION_REQUIRED) {
-                        try {
-                            val resolvable = exception as ResolvableApiException
-                            resolvable.startResolutionForResult(context as Activity, 1000)
-                        } catch (_: IntentSender.SendIntentException) {
-                        }
-
-                    }
-                }
-            }
+            requestLocationService(context, navToNewMyActivity)
         } else scope.launch {
-            snackbarHostState.currentSnackbarData?.dismiss()
-            val snackResult = snackbarHostState.showSnackbar(
-                context.getString(R.string.needLocationPermission),
-                context.getString(R.string.settings),
-                duration = SnackbarDuration.Short
-            )
-            if (snackResult == SnackbarResult.ActionPerformed) {
-                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                    data = Uri.fromParts("package", context.packageName, null)
-                }
-                context.startActivity(intent)
-            }
+            showSnackbar(context, snackbarHostState)
         }
     }
 
-
-
-
     Scaffold(
         containerColor = Colors.White,
-        snackbarHost = {
-            SnackbarHost(snackbarHostState) { data ->
-                Snackbar(
-                    snackbarData = data,
-                    containerColor = Colors.White,
-                    contentColor = Colors.Dark,
-                    actionColor = Colors.Purple,
-                )
-            }
-        },
+        snackbarHost = { DdSnackbarHost(snackbarHostState) },
         bottomBar = {
             DdBottomBar(
                 items = listOf(BottomNavItems.Activity, BottomNavItems.Profile),
@@ -135,5 +92,42 @@ fun MainScreen(logout: () -> Unit, navToNewMyActivity: () -> Unit) {
             modifier = Modifier.padding(padding),
             logout = logout
         )
+    }
+}
+
+private suspend fun showSnackbar(context: Context, snackbarHostState: SnackbarHostState) {
+    snackbarHostState.currentSnackbarData?.dismiss()
+    val snackResult = snackbarHostState.showSnackbar(
+        context.getString(R.string.needLocationPermission),
+        context.getString(R.string.settings),
+        duration = SnackbarDuration.Short
+    )
+    if (snackResult == SnackbarResult.ActionPerformed) {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = Uri.fromParts("package", context.packageName, null)
+        }
+        context.startActivity(intent)
+    }
+}
+
+private fun requestLocationService(context: Context, onSuccess: () -> Unit) {
+    val client = LocationServices.getSettingsClient(context)
+    val locationRequest =
+        LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 10000).build()
+    val settingsRequest = LocationSettingsRequest.Builder()
+        .addLocationRequest(locationRequest)
+        .build()
+    val task: Task<LocationSettingsResponse> = client.checkLocationSettings(settingsRequest)
+    task.addOnSuccessListener { onSuccess() }
+    task.addOnFailureListener { exception ->
+        if (exception is ApiException) {
+            if (exception.statusCode == LocationSettingsStatusCodes.RESOLUTION_REQUIRED) {
+                try {
+                    val resolvable = exception as ResolvableApiException
+                    resolvable.startResolutionForResult(context as Activity, 1000)
+                } catch (_: IntentSender.SendIntentException) {
+                }
+            }
+        }
     }
 }

@@ -13,7 +13,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.dd_app.R
-import com.example.dd_app.core.convert.TimeDifferenceConvert
+import com.example.dd_app.core.convert.DistanceConvert
+import com.example.dd_app.core.convert.timeAgo
+import com.example.dd_app.core.convert.timeDifference
 import com.example.dd_app.presentation.ui.theme.Colors
 import com.example.dd_app.presentation.viewmodel.ActivitiesWithTitles
 import java.time.LocalDateTime
@@ -44,16 +46,15 @@ fun ListActivity(
                 )
                 ActivityCard(
                     modifier = Modifier.padding(bottom = 16.dp),
-                    distance = if (item.item.distanceMeters > 1000) "${item.item.distanceMeters.toDouble() / 1000} км" else "${item.item.distanceMeters} м",
-                    exerciseDate = TimeDifferenceConvert().timeAgo(
-                        item.item.exerciseStart,
+                    distance = DistanceConvert.toShortMeters(item.item.distanceMeters),
+                    exerciseDate = item.item.exerciseStart.timeAgo(
                         now,
                         stringResource(R.string.ago),
                         stringResource(R.string.rightNow)
                     ),
                     exerciseType = item.item.exerciseType.title,
-                    exerciseTime = TimeDifferenceConvert().timeDifference(
-                        item.item.exerciseStart,
+                    exerciseTime = item.item.exerciseStart.timeDifference(
+
                         item.item.exerciseEnd
                     ),
                     userName = if (showUsername && item.item.userName != null) item.item.userName else "",

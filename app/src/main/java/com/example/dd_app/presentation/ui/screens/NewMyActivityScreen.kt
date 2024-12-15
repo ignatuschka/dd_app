@@ -49,7 +49,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun NewMyActivityScreen(popBack: () -> Unit, viewModel: NewMyActivityViewModel = hiltViewModel()) {
     val context = LocalContext.current
-    var mapView = MapView(context)
+    var mapView = remember { MapView(context) }
     var beforeExercisePlacemark: PlacemarkMapObject? by remember { mutableStateOf(null) }
     var exercisePlacemark: PlacemarkMapObject? by remember { mutableStateOf(null) }
     var exercisePolyline: PolylineMapObject? by remember { mutableStateOf(null) }

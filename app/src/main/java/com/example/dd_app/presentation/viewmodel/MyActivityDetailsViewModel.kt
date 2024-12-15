@@ -4,8 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.dd_app.core.convert.DateConvert
-import com.example.dd_app.core.convert.TimeDifferenceConvert
-import com.example.dd_app.domain.entity.MyActivityEntity
+import com.example.dd_app.core.convert.timeDifference
+import com.example.dd_app.domain.entity.ActivityEntity
 import com.example.dd_app.domain.usecase.DeleteMyActivityUsecase
 import com.example.dd_app.domain.usecase.GetMyActivityByIdUsecase
 import com.example.dd_app.domain.usecase.UpdateCommentUsecase
@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class MyActivityDetailsUiState(
-    val myActivity: MyActivityEntity? = null,
+    val myActivity: ActivityEntity? = null,
     val comment: String = ""
 )
 
@@ -65,9 +65,9 @@ class MyActivityDetailsViewModel @Inject constructor(
             "${myActivity.distanceMeters} м"
 
         val duration =
-            TimeDifferenceConvert().timeDifference(myActivity.exerciseStart, myActivity.exerciseEnd)
-        val startTime = DateConvert().format(myActivity.exerciseStart, "HH:mm")
-        val endTime = DateConvert().format(myActivity.exerciseEnd, "HH:mm")
+            myActivity.exerciseStart.timeDifference(myActivity.exerciseEnd)
+        val startTime = DateConvert.format(myActivity.exerciseStart, "HH:mm")
+        val endTime = DateConvert.format(myActivity.exerciseEnd, "HH:mm")
         val comment = myActivity.comment.ifBlank { "Без комментариев" }
         val exerciseType = myActivity.exerciseType.title
 

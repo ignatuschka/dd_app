@@ -34,7 +34,6 @@ class ChangePasswordViewModel @Inject constructor(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ChangePasswordUiState())
     val uiState: StateFlow<ChangePasswordUiState> = _uiState.asStateFlow()
-    private val hashUtil = HashUtil()
     private var user: UserEntity? = null
 
     init {
@@ -43,37 +42,30 @@ class ChangePasswordViewModel @Inject constructor(
         }
     }
 
-    private suspend fun getUser() {
-        val login = getUserLoginUsecase()
-        if (login != null) user = getUserByLoginUsecase(login)
+    private suspend fun getUser() = getUserLoginUsecase()?.let {
+        user = getUserByLoginUsecase(it)
     }
 
-    fun onChangeOldPassword(oldPasswordText: String) {
-        _uiState.update {
-            it.copy(
-                oldPassword = oldPasswordText,
-                oldPasswordError = oldPasswordText.isEmpty(),
-                wrongUserData = false
-            )
-        }
+    fun onChangeOldPassword(oldPasswordText: String) = _uiState.update {
+        it.copy(
+            oldPassword = oldPasswordText,
+            oldPasswordError = oldPasswordText.isEmpty(),
+            wrongUserData = false
+        )
     }
 
-    fun onChangeNewPassword(newPasswordText: String) {
-        _uiState.update {
-            it.copy(
-                newPassword = newPasswordText,
-                newPasswordError = newPasswordText.isEmpty(),
-            )
-        }
+    fun onChangeNewPassword(newPasswordText: String) = _uiState.update {
+        it.copy(
+            newPassword = newPasswordText,
+            newPasswordError = newPasswordText.isEmpty(),
+        )
     }
 
-    fun onChangeNewPasswordRepeat(newPasswordRepeatText: String) {
-        _uiState.update {
-            it.copy(
-                newPasswordRepeat = newPasswordRepeatText,
-                newPasswordRepeatError = newPasswordRepeatText.isEmpty() || it.newPassword != newPasswordRepeatText,
-            )
-        }
+    fun onChangeNewPasswordRepeat(newPasswordRepeatText: String) = _uiState.update {
+        it.copy(
+            newPasswordRepeat = newPasswordRepeatText,
+            newPasswordRepeatError = newPasswordRepeatText.isEmpty() || it.newPassword != newPasswordRepeatText,
+        )
     }
 
     fun updateCallback() {
@@ -84,16 +76,12 @@ class ChangePasswordViewModel @Inject constructor(
             return
         }
         val passwordCorrect = user?.let {
-            hashUtil.verifyHashValue(
-                value = uiState.value.oldPassword,
-                salt = it.salt,
-                storedHash = it.passwordHash
-            )
+            HashUtil.verifyHashPassword(uiState.value.oldPassword, it.salt, it.passwordHash)
         } ?: false
         viewModelScope.launch {
-            val isUpdated = if (passwordCorrect)  updatePasswordUsecase(
+            val isUpdated = if (passwordCorrect) updatePasswordUsecase(
                 user!!.id,
-                hashUtil.hashValue(uiState.value.newPassword, user!!.salt)
+                HashUtil.hashPassword(uiState.value.newPassword, user!!.salt)
             ) else false
             if (isUpdated) {
                 getUser()

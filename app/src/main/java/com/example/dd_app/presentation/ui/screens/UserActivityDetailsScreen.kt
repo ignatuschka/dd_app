@@ -22,12 +22,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.dd_app.R
 import com.example.dd_app.core.convert.DateConvert
-import com.example.dd_app.core.convert.TimeDifferenceConvert
+import com.example.dd_app.core.convert.timeAgo
+import com.example.dd_app.core.convert.timeDifference
 import com.example.dd_app.presentation.ui.components.DdAppBar
 import com.example.dd_app.presentation.ui.components.DdTextField
 import com.example.dd_app.presentation.ui.components.StartFinishTimeText
 import com.example.dd_app.presentation.ui.theme.Colors
 import com.example.dd_app.presentation.viewmodel.UserActivityDetailsViewModel
+import com.example.dd_app.core.convert.DistanceConvert
+import com.example.dd_app.presentation.ui.components.ActivityDetailsContent
+import com.example.dd_app.presentation.ui.components.EmptyTextBox
 import java.time.LocalDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,8 +42,8 @@ fun UserActivityDetailsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val now = LocalDateTime.now()
-    val modifier = Modifier.padding(start = 32.dp, top = 24.dp, end = 32.dp)
-    val subtitleModifier = Modifier.padding(horizontal = 32.dp)
+    val scrollState = rememberScrollState()
+
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -53,60 +57,29 @@ fun UserActivityDetailsScreen(
             isRefreshing = uiState.isLoading,
             onRefresh = { viewModel.getUserActivity() }) {
             if (uiState.userActivity != null) {
-                val userActivity = uiState.userActivity!!
-                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                    Text(
-                        modifier = modifier,
-                        text = userActivity.userName ?: "",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Colors.Purple,
-                    )
-                    Text(
-                        modifier = modifier,
-                        text = if (userActivity.distanceMeters > 1000) "${userActivity.distanceMeters.toDouble() / 1000} км" else "${userActivity.distanceMeters} м",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = Colors.Dark,
-                    )
-                    Text(
-                        modifier = subtitleModifier,
-                        text = TimeDifferenceConvert().timeAgo(
-                            userActivity.exerciseStart,
+                uiState.userActivity?.let {
+                    ActivityDetailsContent(
+                        scrollState = scrollState,
+                        userName = it.userName,
+                        distanceMeters = DistanceConvert.toShortMeters(it.distanceMeters),
+                        exerciseDate = it.exerciseStart.timeAgo(
                             now,
                             stringResource(R.string.ago),
                             stringResource(R.string.rightNow)
                         ),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Colors.Gray
-                    )
-                    Text(
-                        modifier = modifier,
-                        text = TimeDifferenceConvert().timeDifference(
-                            userActivity.exerciseStart,
-                            userActivity.exerciseEnd
-                        ),
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = Colors.Dark,
-                    )
-                    StartFinishTimeText(
-                        modifier = subtitleModifier,
-                        startTime = DateConvert().format(userActivity.exerciseStart, "HH:mm"),
-                        finishTime = DateConvert().format(userActivity.exerciseEnd, "HH:mm")
-                    )
-                    DdTextField(
-                        modifier = modifier,
-                        value = userActivity.comment,
-                        enabled = false,
-                        singleLine = false
+                        exerciseDuration = it.exerciseStart.timeDifference(it.exerciseEnd),
+                        startTime = DateConvert.format(it.exerciseStart, "HH:mm"),
+                        finishTime = DateConvert.format(it.exerciseEnd, "HH:mm"),
+                        textField = { _ ->
+                            DdTextField(
+                                value = it.comment,
+                                enabled = false,
+                                singleLine = false
+                            )
+                        }
                     )
                 }
-            } else Box(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()), contentAlignment = Alignment.Center) {
-                Text(
-                    text = stringResource(R.string.empty),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = Colors.Dark
-                )
-            }
+            } else EmptyTextBox(scrollState = scrollState)
         }
     }
 }

@@ -5,7 +5,7 @@ import com.example.dd_app.core.enums.ExerciseType
 import com.example.dd_app.data.database.model.MyActivityModel
 import java.time.LocalDateTime
 
-data class MyActivityEntity(
+data class ActivityEntity(
     val id: Int = -1,
     val userId: Int = -1,
     val distanceMeters: Int,
@@ -18,8 +18,8 @@ data class MyActivityEntity(
     fun toModel() = MyActivityModel(
         distanceMeters = distanceMeters,
         userId = userId,
-        exerciseStart = DateConvert().dateToString(exerciseStart),
-        exerciseEnd = DateConvert().dateToString(exerciseEnd),
+        exerciseStart = DateConvert.dateToString(exerciseStart),
+        exerciseEnd = DateConvert.dateToString(exerciseEnd),
         comment = comment,
         exerciseType = exerciseType.name,
     )
