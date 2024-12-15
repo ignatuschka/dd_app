@@ -1,22 +1,14 @@
 package com.example.dd_app.presentation.ui.components
 
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.RadioButtonDefaults
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.example.dd_app.presentation.ui.theme.Colors
 
 @Composable
 fun <T> RadioButtonGroup(selectedOption: T, onClick: (T) -> Unit, radioOptions: List<T>) {
@@ -38,11 +30,9 @@ fun <T> RadioButtonGroup(selectedOption: T, onClick: (T) -> Unit, radioOptions: 
                 colors = RadioButtonDefaults.colors(Color(75, 9, 243))
             )
             Text(
-                text = "$el", fontSize = 16.sp,
-                fontWeight = FontWeight.Normal,
-                fontFamily = FontFamily.Default,
-                lineHeight = 24.sp,
-                color = Color(16, 16, 16),
+                text = "$el",
+                style = MaterialTheme.typography.bodyLarge,
+                color = Colors.Dark,
                 modifier = Modifier.padding(start = 12.dp)
             )
         }
